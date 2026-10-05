@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>WriteAssist</title>
+<link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <header>
+    <div class="brand"><span class="logo">W</span><div><b>WriteAssist</b><small>Free grammar · rewrite · reply · translate</small></div></div>
+    <label class="switch" title="Turn WriteAssist on/off everywhere"><input type="checkbox" id="enabled"><span></span></label>
+  </header>
+
+  <section class="site">
+    <span id="siteName">This site</span>
+    <label class="switch sm"><input type="checkbox" id="siteOn"><span></span></label>
+  </section>
+
+  <section>
+    <h3>Writing</h3>
+    <label class="row">Check while typing <input type="checkbox" id="autoCheck"></label>
+    <label class="row">Picky mode (more style tips) <input type="checkbox" id="picky"></label>
+    <label class="row">Writing language
+      <select id="ltLanguage">
+        <option value="auto">Auto-detect</option>
+        <option value="en-US">English (US)</option>
+        <option value="en-GB">English (UK)</option>
+        <option value="ar">Arabic</option>
+        <option value="fr">French</option>
+        <option value="de-DE">German</option>
+        <option value="es">Spanish</option>
+      </select>
+    </label>
+    <label class="row">My native language
+      <select id="motherTongue"></select>
+    </label>
+    <label class="row">Translate to
+      <select id="translateTarget"></select>
+    </label>
+  </section>
+
+  <section>
+    <h3>AI (rewrite, AI fix, replies)</h3>
+    <div class="status" id="nanoBox"><span class="pill" id="nanoPill">checking…</span><span id="nanoText">Chrome built-in AI (Gemini Nano)</span></div>
+    <button id="nanoBtn" class="btn hidden">Download on-device AI model</button>
+    <div id="nanoProg" class="prog hidden"><i></i></div>
+    <label class="row">Engine
+      <select id="engine">
+        <option value="auto">Auto (on-device first, then Gemini key)</option>
+        <option value="nano">Chrome on-device only</option>
+        <option value="gemini">Gemini API only</option>
+      </select>
+    </label>
+    <label class="col">Free Gemini API key <a href="https://aistudio.google.com/apikey" target="_blank">get one free ↗</a>
+      <input type="password" id="geminiKey" placeholder="AIza…" autocomplete="off">
+    </label>
+    <label class="row">Gemini model <input type="text" id="geminiModel" class="short"></label>
+  </section>
+
+  <details>
+    <summary>Personal dictionary &amp; advanced</summary>
+    <label class="col">Words never marked as spelling mistakes (one per line)
+      <textarea id="dictionary" rows="4"></textarea>
+    </label>
+    <label class="col">LanguageTool server
+      <input type="text" id="ltServer" placeholder="https://api.languagetool.org">
+    </label>
+    <label class="col">LanguageTool Premium username / API key (optional)
+      <div class="pair"><input type="text" id="ltUser" placeholder="email"><input type="password" id="ltApiKey" placeholder="api key"></div>
+    </label>
+  </details>
+
+  <section>
+    <h3>Diagnostics</h3>
+    <div class="tests"><button class="tbtn" data-test="grammar">Test grammar</button><button class="tbtn" data-test="ai">Test AI</button><button class="tbtn" data-test="translate">Test translate</button></div>
+    <div id="testOut" class="testout"></div>
+    <label class="row">Debug logs in page console (F12) <input type="checkbox" id="debug"></label>
+    <div class="row"><b class="small">Last API calls</b><button id="clearCalls" class="linkbtn">clear</button></div>
+    <div id="calls" class="calls"></div>
+  </section>
+
+  <footer>
+    <span>Shortcuts: <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>G</kbd> panel · <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>F</kbd> AI fix</span>
+    <span id="saved" class="saved">Saved ✓</span>
+  </footer>
+  <script src="popup.js"></script>
+</body>
+</html>
