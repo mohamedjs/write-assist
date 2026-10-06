@@ -248,6 +248,7 @@
       h('div', { class: 'card-actions' },
         h('button', { class: 'link', onclick: () => ignoreMatch(i) }, 'Ignore'),
         m.issueType === 'misspelling' ? h('button', { class: 'link', onclick: () => addWord(i) }, 'Add to dictionary') : null,
+        h('button', { class: 'link', title: 'Fix the grammar of the whole sentence with AI', onclick: () => fixSentenceInCard(i) }, '✨ Fix sentence'),
         h('button', { class: 'link', onclick: () => { hideCard(); togglePanel('fix', true); } }, 'More…'))
     );
     card.classList.remove('hidden');
@@ -306,6 +307,123 @@
     }
     setTimeout(() => { onInput(); renderPanel(); }, 50);
     toast(`Applied ${list.length} fix${list.length > 1 ? 'es' : ''}`, 'ok');
+  }
+
+  // ----------------------------------------------------------------- sentence fixes (AI)
+  function sentencesOf(text) {
+    const out = [];
+    const push = (a, b) => {
+      while (a < b && /\s/.test(text[a])) a++;
+      while (b > a && /\s/.test(text[b - 1])) b--;
+      if (b > a) out.push({ start: a, end: b, text: text.slice(a, b) });
+    };
+    const re = /[.!?؟…]+["'”’)\]]*(?=\s|$)|\n/g;
+    let start = 0, m;
+    while ((m = re.exec(text))) { const end = m.index + m[0].length; push(start, end); start = end; }
+    push(start, text.length);
+    return out;
+  }
+  // sentence that contains pos (or the last one that starts before it)
+  function sentenceAt(text, pos) {
+    const list = sentencesOf(text);
+    return list.filter((s) => s.start <= pos).pop() || list[0] || null;
+  }
+  function findNear(cur, piece, pos) {
+    if (cur.substr(pos, piece.length) === piece) return pos;
+    let best = -1, i = cur.indexOf(piece);
+    while (i !== -1) { if (best === -1 || Math.abs(i - pos) < Math.abs(best - pos)) best = i; i = cur.indexOf(piece, i + 1); }
+    return best;
+  }
+  function replacePiece(el, piece, pos, rep) {
+    if (!el?.isConnected) return false;
+    const at = findNear(TM.getText(el).text, piece, pos);
+    if (at === -1) return false;
+    TM.replaceRange(el, at, at + piece.length, rep);
+    setTimeout(() => { if (S.el === el) onInput(); }, 30);
+    return true;
+  }
+
+  async function fixSentenceInCard(i) {
+    const m = S.matches[i], el = S.el;
+    if (!m || !el) return;
+    const s = sentenceAt(TM.getText(el).text, m.offset);
+    if (!s) return;
+    clearTimeout(cardHideT);
+    card.querySelector('.card-ai')?.remove();
+    const area = h('div', { class: 'card-ai' }, busyBox('Fixing sentence…'));
+    card.append(area);
+    try {
+      const r = await send({ type: 'ai', task: 'fix', text: s.text });
+      const fixed = String(r.result || '').trim();
+      if (!fixed || fixed === s.text) { area.replaceChildren(h('div', { class: 'muted small' }, 'The AI thinks this sentence is correct.')); return; }
+      area.replaceChildren(
+        h('div', { class: 'out', dir: 'auto' }, diffNodes(s.text, fixed)),
+        h('div', { class: 'row end' },
+          h('span', { class: 'muted small grow' }, r.label || ''),
+          h('button', { class: 'mini', onclick: () => {
+            hideCard();
+            replacePiece(el, s.text, s.start, fixed) ? toast('Sentence fixed ✓', 'ok') : toast('The sentence changed – try again', 'err');
+          } }, 'Accept')));
+    } catch (e) { area.replaceChildren(errBox(e.message)); }
+  }
+
+  let SF = { el: null, list: [], loading: false, done: false, error: '', note: '' };
+  const MAX_SENTS = 40;
+  async function fixSentences() {
+    const el = S.el || S.lastEl;
+    if (!el?.isConnected) return;
+    const all = sentencesOf(TM.getText(el).text).filter((s) => /\p{L}/u.test(s.text));
+    if (!all.length) return toast('Type something first', 'err');
+    const sents = all.slice(0, MAX_SENTS);
+    SF = { el, list: [], loading: true, done: false, error: '', note: '' };
+    renderPanel(); positionPanel();
+    try {
+      const r = await send({ type: 'ai', task: 'sentences', sentences: sents.map((s) => s.text) });
+      const list = sents.map((s, i) => ({ ...s, fixed: String(r.result[i] ?? s.text).trim() })).filter((s) => s.fixed && s.fixed !== s.text);
+      SF = { el, list, loading: false, done: true, error: '', note: `${sents.length} sentence${sents.length > 1 ? 's' : ''} checked · ${r.label || r.engine}` + (all.length > MAX_SENTS ? ` · only the first ${MAX_SENTS} of ${all.length}` : '') };
+    } catch (e) { SF = { el, list: [], loading: false, done: false, error: e.message, note: '' }; }
+    renderPanel(); positionPanel();
+  }
+  function acceptSentence(i) {
+    const s = SF.list[i];
+    if (!s) return;
+    if (!replacePiece(SF.el, s.text, s.start, s.fixed)) toast('That sentence changed – run the check again', 'err');
+    SF.list.splice(i, 1);
+    renderPanel();
+  }
+  async function acceptAllSentences() {
+    const list = SF.list.slice().sort((a, b) => b.start - a.start); // last first, so earlier offsets stay valid
+    let n = 0;
+    for (const s of list) {
+      if (replacePiece(SF.el, s.text, s.start, s.fixed)) n++;
+      await new Promise((r) => setTimeout(r, 40));
+    }
+    SF.list = [];
+    renderPanel();
+    toast(`Fixed ${n} sentence${n === 1 ? '' : 's'} ✓`, 'ok');
+  }
+
+  function panelSentences(body, el) {
+    const mine = SF.el === el;
+    body.append(h('div', { class: 'row' },
+      h('div', { class: 'grow' },
+        h('div', { class: 'lbl' }, 'Fix by sentence'),
+        h('div', { class: 'muted small' }, 'AI checks each sentence for grammar the underlines miss.')),
+      mine && SF.list.length > 1 ? h('button', { class: 'btn', onmousedown: noFocus, onclick: acceptAllSentences }, `Accept all (${SF.list.length})`) : null,
+      h('button', { class: 'btn ' + (mine && SF.done ? 'ghost' : 'accent'), disabled: mine && SF.loading, onmousedown: noFocus, onclick: fixSentences }, mine && SF.done ? 'Re-check' : '✨ Fix sentences')));
+    if (!mine) return;
+    if (SF.loading) body.append(busyBox('Checking sentences…'));
+    if (SF.error) body.append(errBox(SF.error));
+    if (SF.done && !SF.list.length) body.append(h('div', { class: 'score ok small' }, 'All sentences look correct ✓'));
+    if (SF.list.length) {
+      const box = h('div', { class: 'issues' });
+      SF.list.forEach((s, i) => box.append(h('div', { class: 'issue' },
+        h('div', { class: 'grow sent', dir: 'auto' }, diffNodes(s.text, s.fixed)),
+        h('button', { class: 'mini', onmousedown: noFocus, onclick: () => acceptSentence(i) }, 'Fix'),
+        h('button', { class: 'mini ghost', onmousedown: noFocus, onclick: () => { SF.list.splice(i, 1); renderPanel(); } }, '✕'))));
+      body.append(box);
+    }
+    if (SF.done && SF.note) body.append(h('div', { class: 'muted small' }, SF.note));
   }
 
   // ----------------------------------------------------------------- panel
@@ -412,6 +530,8 @@
     });
     body.append(list);
     body.append(h('div', { class: 'sep' }));
+    panelSentences(body, el);
+    body.append(h('div', { class: 'sep' }));
     body.append(h('div', { class: 'row' },
       h('div', { class: 'muted small' }, 'Deep fix with AI rewrites the whole message' + (panelSel ? ' (selection)' : '') + '.'),
       h('div', { class: 'grow' }),
@@ -472,7 +592,7 @@
     renderAIResultOnly(body);
     try {
       const r = await send({ type: 'ai', task, text, ...extra });
-      const eng = r.engine === 'nano' ? 'Chrome on-device AI' : 'Gemini API';
+      const eng = r.label || (r.engine === 'nano' ? 'Chrome on-device AI' : 'Gemini API');
       if (Array.isArray(r.result)) aiResult = { list: r.result, note: eng };
       else aiResult = { text: r.result, before: text, note: eng, replaceable: true };
     } catch (e) { aiResult = { error: e.message }; }
@@ -621,7 +741,7 @@
     } else {
       try {
         const r = await send({ type: 'ai', task: 'fix', text: info.text });
-        aiResult = { text: r.result, before: info.text, note: r.engine === 'nano' ? 'Chrome on-device AI' : 'Gemini API', replaceable: false };
+        aiResult = { text: r.result, before: info.text, note: r.label || (r.engine === 'nano' ? 'Chrome on-device AI' : 'Gemini API'), replaceable: false };
       } catch (e) { aiResult = { error: e.message }; }
     }
     renderAIResultOnly(body);
@@ -705,6 +825,19 @@
       if (siteOff()) return;
       const el = S.el || TM.editableRoot(document.activeElement);
       if (msg.name === 'open-panel') { if (el && el !== S.el) activate(el); togglePanel('fix', true); }
+      if (msg.name === 'fix-sentence' && el) {
+        if (el !== S.el) activate(el);
+        const text = TM.getText(el).text;
+        const o = TM.selectionOffsets(el);
+        const s = sentenceAt(text, o ? o.start : text.length);
+        if (!s) return;
+        toast('✨ Fixing sentence…');
+        send({ type: 'ai', task: 'fix', text: s.text }).then((r) => {
+          const fixed = String(r.result || '').trim();
+          if (!fixed || fixed === s.text) return toast('This sentence looks correct ✓', 'ok');
+          replacePiece(el, s.text, s.start, fixed) ? toast('Sentence fixed ✓', 'ok') : toast('Text changed meanwhile – try again', 'err');
+        }, (e) => toast(e.message, 'err'));
+      }
       if (msg.name === 'fix-all' && el) {
         if (el !== S.el) activate(el);
         const text = TM.getText(el).text.replace(/\n+$/, '');
@@ -785,6 +918,12 @@
   .iw s{color:#e5484d}.iw b{color:#10b981;font-weight:600}
   .im{font-size:11.5px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .sep{height:1px;background:var(--bd)}
+  .sent{line-height:1.45;white-space:pre-wrap;word-break:break-word}
+  .sent ins{background:rgba(16,185,129,.18);color:inherit;text-decoration:none;border-radius:3px}
+  .sent del{color:#e5484d;opacity:.75}
+  .card-ai{margin-top:10px;display:flex;flex-direction:column;gap:8px}
+  .card-ai .out{max-height:160px}
+  .btn[disabled]{opacity:.5;cursor:default}
   .inp{width:100%;border:1px solid var(--bd);background:var(--soft);color:var(--fg);border-radius:8px;padding:8px;font-size:13px;resize:vertical;outline:none}
   .inp:focus{border-color:var(--acc)}
   .sel{width:auto;padding:5px 6px}

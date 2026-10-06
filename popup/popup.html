@@ -47,11 +47,24 @@
     <div id="nanoProg" class="prog hidden"><i></i></div>
     <label class="row">Engine
       <select id="engine">
-        <option value="auto">Auto (on-device first, then Gemini key)</option>
+        <option value="auto">Auto (on-device → OpenRouter → Gemini)</option>
+        <option value="openrouter">OpenRouter only</option>
         <option value="nano">Chrome on-device only</option>
         <option value="gemini">Gemini API only</option>
       </select>
     </label>
+    <div class="group">
+      <b class="small">OpenRouter</b>
+      <label class="col">API key <a href="https://openrouter.ai/settings/keys" target="_blank">get a key ↗</a>
+        <input type="password" id="openrouterKey" placeholder="sk-or-v1-…" autocomplete="off">
+      </label>
+      <label class="col">Model
+        <input type="text" id="openrouterModel" list="orModels" placeholder="openrouter/auto" autocomplete="off" spellcheck="false">
+        <datalist id="orModels"></datalist>
+      </label>
+      <div class="row small"><label class="inline"><input type="checkbox" id="orFreeOnly"> Show free models only</label><button id="orReload" class="linkbtn">reload list</button></div>
+      <div id="orInfo" class="hint"></div>
+    </div>
     <label class="col">Free Gemini API key <a href="https://aistudio.google.com/apikey" target="_blank">get one free ↗</a>
       <input type="password" id="geminiKey" placeholder="AIza…" autocomplete="off">
     </label>
@@ -81,7 +94,7 @@
   </section>
 
   <footer>
-    <span>Shortcuts: <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>G</kbd> panel · <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>F</kbd> AI fix</span>
+    <span>Shortcuts: <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>G</kbd> panel · <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>F</kbd> AI fix · <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>S</kbd> fix sentence</span>
     <span id="saved" class="saved">Saved ✓</span>
   </footer>
   <script src="popup.js"></script>

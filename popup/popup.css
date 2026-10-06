@@ -48,3 +48,7 @@ kbd{background:var(--soft);border:1px solid var(--bd);border-radius:4px;padding:
 .call{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.call.good{color:#10b981}.call.bad{color:#e5484d}
 .linkbtn{border:0;background:none;color:var(--acc);cursor:pointer;font-size:12px}
 .small{font-size:12px}
+.group{border:1px solid var(--bd);border-radius:9px;padding:8px 10px;margin:8px 0;background:var(--soft)}
+.group input[type=text],.group input[type=password]{background:var(--bg)}
+.inline{display:flex;align-items:center;gap:6px;cursor:pointer}
+.hint{font-size:11.5px;color:var(--mut);word-break:break-word}.hint:empty{display:none}

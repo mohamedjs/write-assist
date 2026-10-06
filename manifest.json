@@ -31,7 +31,8 @@
   "host_permissions": [
     "https://api.languagetool.org/*",
     "https://translate.googleapis.com/*",
-    "https://generativelanguage.googleapis.com/*"
+    "https://generativelanguage.googleapis.com/*",
+    "https://openrouter.ai/*"
   ],
   "optional_host_permissions": [
     "<all_urls>"
@@ -64,6 +65,13 @@
         "mac": "Alt+Shift+F"
       },
       "description": "Fix the whole focused text box with AI"
+    },
+    "fix-sentence": {
+      "suggested_key": {
+        "default": "Alt+Shift+S",
+        "mac": "Alt+Shift+S"
+      },
+      "description": "Fix the grammar of the sentence at the cursor with AI"
     }
   },
   "options_page": "popup/popup.html"

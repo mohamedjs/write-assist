@@ -1,6 +1,6 @@
 // WriteAssist service worker: routes requests from content scripts to free services.
 //  - Grammar/spelling: LanguageTool public API (free, no key)
-//  - AI (rewrite / fix / replies): Chrome built-in Gemini Nano (offscreen doc) -> fallback free Gemini API key
+//  - AI (rewrite / fix / replies): Chrome built-in Gemini Nano (offscreen doc) -> OpenRouter (your key + model) -> Gemini API key
 //  - Translation: Chrome built-in Translator API (offscreen doc) -> fallback Google Translate free endpoint
 
 const DEFAULTS = {
@@ -11,9 +11,11 @@ const DEFAULTS = {
   motherTongue: 'ar',
   translateTarget: 'en',
   picky: false,
-  engine: 'auto', // auto | nano | gemini
+  engine: 'auto', // auto | nano | openrouter | gemini
   geminiKey: '',
   geminiModel: 'gemini-flash-latest',
+  openrouterKey: '',
+  openrouterModel: 'openrouter/auto',
   debug: false,
   ltServer: 'https://api.languagetool.org',
   ltUser: '',
@@ -189,6 +191,46 @@ async function gemini(prompt, { json = false } = {}) {
   throw new Error('Gemini: ' + lastErr.message);
 }
 
+// ---------------------------------------------------------------- OpenRouter (any model with your own key)
+async function openrouter(prompt) {
+  const s = await getSettings();
+  if (!s.openrouterKey) throw new Error('No OpenRouter API key set');
+  const model = (s.openrouterModel || DEFAULTS.openrouterModel).trim();
+  const url = 'https://openrouter.ai/api/v1/chat/completions';
+  let out;
+  await timed('OpenRouter (' + model + ')', url, async () => {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: 'Bearer ' + s.openrouterKey,
+        'HTTP-Referer': 'https://github.com/write-assist',
+        'X-Title': 'WriteAssist'
+      },
+      body: JSON.stringify({
+        model,
+        temperature: 0.4,
+        messages: [
+          { role: 'system', content: 'You are a precise writing assistant. Follow the instructions exactly and output only what is asked.' },
+          { role: 'user', content: prompt }
+        ]
+      })
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || data.error) {
+      const msg = data.error?.metadata?.raw || data.error?.message || res.statusText;
+      throw new Error(`HTTP ${res.status}: ${msg}`);
+    }
+    const c = data.choices?.[0]?.message?.content;
+    out = (Array.isArray(c) ? c.map((p) => p.text || '').join('') : c || '').trim();
+    if (!out) throw new Error('Empty answer (finish_reason: ' + (data.choices?.[0]?.finish_reason || '?') + ')');
+    return { res, info: `${out.length} chars · ${data.model || model}` };
+  });
+  return out;
+}
+
+const ENGINE_LABEL = { nano: 'Chrome on-device AI', openrouter: 'OpenRouter', gemini: 'Gemini API' };
+
 // ---------------------------------------------------------------- AI tasks
 const TONES = {
   formal: 'more formal and polished',
@@ -210,6 +252,10 @@ function buildPrompt(task, { text, tone, context, intent, lang }) {
     case 'reply': {
       const langLine = lang ? `Write the replies in ${lang}.` : 'Write the replies in the same language as the message.';
       return `You help a busy professional answer messages and emails. Suggest 3 different reply options to the message below: one short, one medium, one more detailed. Natural, polite and correct English grammar if English. ${langLine}${intent ? ` The user wants the reply to: ${intent}.` : ''}${text ? ` Base it on the user's draft: "${text}".` : ''}\nOutput a JSON array of 3 strings and nothing else.\n\nMessage to reply to:\n${context}`;
+    }
+    case 'sentences': {
+      const list = payload.sentences || [];
+      return `Correct the grammar, spelling, punctuation and word choice of each sentence in the JSON array below. Keep each sentence's meaning, language, tone, emojis, @mentions and links. Do not merge, split, reorder or translate sentences. If a sentence is already correct, return it unchanged.\nOutput ONLY a JSON array of exactly ${list.length} strings, in the same order.\n\n${JSON.stringify(list)}`;
     }
     case 'compose':
       return `Write a clear, well-written message based on these notes/instructions: "${intent || text}". ${context ? `It is a reply to this message:\n${context}\n` : ''}${rule}`;
@@ -234,12 +280,26 @@ function parseList(out) {
   return out.split(/\n\s*(?:\d+[.)]|[-*•])\s+/).map((x) => x.replace(/^\s*(?:\d+[.)]|[-*•])\s+/, '').trim()).filter(Boolean).slice(0, 3);
 }
 
+function parseArray(out, expected) {
+  out = String(out || '').replace(/```(json)?/g, '').trim();
+  const a = out.indexOf('['), b = out.lastIndexOf(']');
+  if (a === -1 || b <= a) throw new Error('AI did not return a list');
+  const arr = JSON.parse(out.slice(a, b + 1));
+  if (!Array.isArray(arr)) throw new Error('AI did not return a list');
+  if (expected && arr.length !== expected) throw new Error(`AI returned ${arr.length} sentences, expected ${expected}`);
+  return arr.map((x) => (typeof x === 'string' ? x : x?.text ?? x?.fixed ?? String(x)));
+}
+
 async function runAI(task, payload) {
   const s = await getSettings();
   const prompt = buildPrompt(task, payload);
-  const json = task === 'reply';
-  const order = s.engine === 'nano' ? ['nano'] : s.engine === 'gemini' ? ['gemini'] : ['nano', 'gemini'];
-  if (s.engine === 'auto' && s.geminiKey && (payload.text || payload.context || '').length > 3000) order.reverse();
+  const json = task === 'reply' || task === 'sentences';
+  let order;
+  if (s.engine === 'auto') {
+    const cloud = [s.openrouterKey && 'openrouter', s.geminiKey && 'gemini'].filter(Boolean);
+    // long texts go to cloud models first (on-device model has a small context)
+    order = cloud.length && (payload.text || payload.context || '').length > 3000 ? [...cloud, 'nano'] : ['nano', ...cloud];
+  } else order = [s.engine];
   const errors = [];
   for (const eng of order) {
     try {
@@ -250,14 +310,17 @@ async function runAI(task, payload) {
           return { res: { status: 'ok' }, info: (out || '').length + ' chars' };
         });
       }
+      else if (eng === 'openrouter') out = await openrouter(prompt);
       else out = await gemini(prompt, { json });
       if (!out) throw new Error('empty answer');
-      return { engine: eng, result: json ? parseList(out) : cleanText(out) };
+      const label = eng === 'openrouter' ? `OpenRouter · ${s.openrouterModel || DEFAULTS.openrouterModel}` : ENGINE_LABEL[eng];
+      const result = task === 'sentences' ? parseArray(out, (payload.sentences || []).length) : json ? parseList(out) : cleanText(out);
+      return { engine: eng, label, result };
     } catch (e) {
-      errors.push(`${eng === 'nano' ? 'Chrome built-in AI' : 'Gemini API'}: ${e.message}`);
+      errors.push(`${ENGINE_LABEL[eng] || eng}: ${e.message}`);
     }
   }
-  throw new Error(errors.join(' | ') + (s.geminiKey ? '' : ' — Tip: add a free Gemini API key in WriteAssist settings.'));
+  throw new Error(errors.join(' | ') + (s.geminiKey || s.openrouterKey ? '' : ' — Tip: add an OpenRouter or Gemini API key in WriteAssist settings.'));
 }
 
 // ---------------------------------------------------------------- Translation
@@ -300,7 +363,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       case 'translate': return translate(msg.text, msg.target, msg.source);
       case 'test': {
         if (msg.what === 'grammar') { const r = await checkGrammar('I has a apple and she go to scool yesterday. ' + Date.now()); return `OK – ${r.matches.length} issues found: ` + r.matches.map((m) => `${m.word}→${m.replacements[0] ?? '?'}`).join(', '); }
-        if (msg.what === 'ai') { const r = await runAI('fix', { text: 'i has a apple and she go to scool yesterday' }); return `OK (${r.engine === 'nano' ? 'on-device' : 'Gemini'}) – “${r.result}”`; }
+        if (msg.what === 'ai') { const r = await runAI('fix', { text: 'i has a apple and she go to scool yesterday' }); return `OK (${r.label}) – “${r.result}”`; }
         if (msg.what === 'translate') { const r = await translate('صباح الخير يا صديقي', 'en'); return `OK (${r.engine}) – “${r.text}”`; }
         return null;
       }

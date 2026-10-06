@@ -8,14 +8,15 @@ Works in any text box on any site: Gmail, Outlook, WhatsApp Web, Slack, Telegram
 |---|---|---|
 | Red/orange/blue underlines for spelling, grammar and style, with a click-to-fix card | LanguageTool public API | Free, no key (about 20 checks/min) |
 | Badge in the corner of the text box that shows the issue count, plus **Accept all** | — | — |
-| ✨ **AI fix** (rewrites the whole message correctly) | Chrome built-in Gemini Nano → falls back to a free Gemini API key | Free |
+| ✨ **AI fix** (rewrites the whole message correctly) | Chrome built-in Gemini Nano → OpenRouter (your key + any model) → free Gemini API key | Free / your OpenRouter credits |
+| **Fix by sentence**: AI checks each sentence and shows before → after, with Fix / Accept all. Also **✨ Fix sentence** on every underline card | Same AI | Free |
 | **Rewrite**: clearer, professional, formal, friendly, shorter, confident, expand | Same AI | Free |
 | **Reply suggestions**: 3 options for emails and chats; it reads the last message on Gmail, WhatsApp, Slack and Telegram | Same AI | Free |
 | **Translate**: write in Arabic, translate to English, then Replace | Chrome Translator API → Google Translate free endpoint | Free |
 | Selection toolbar on any page: Translate, Fix, Rewrite, Reply | — | — |
 | Right-click menu, personal dictionary, turn off per site | — | — |
 
-Shortcuts: `Alt+Shift+G` opens the panel. `Alt+Shift+F` runs an AI fix on the whole text box. You can change them at `chrome://extensions/shortcuts`.
+Shortcuts: `Alt+Shift+G` opens the panel. `Alt+Shift+F` runs an AI fix on the whole text box. `Alt+Shift+S` fixes only the sentence your cursor is in. You can change them at `chrome://extensions/shortcuts`.
 
 ## Install (developer mode)
 
@@ -28,6 +29,14 @@ Shortcuts: `Alt+Shift+G` opens the panel. `Alt+Shift+F` runs an AI fix on the wh
 5. Reload any tabs that were already open.
 
 The grammar check works right away with nothing to set up.
+
+### Use OpenRouter
+
+1. Create a key at https://openrouter.ai/settings/keys.
+2. In the popup → **AI**, paste it in **OpenRouter → API key**.
+3. Click the **Model** box and pick any model (tick **Show free models only** for `:free` models), or type a model id like `anthropic/claude-sonnet-4.5`.
+4. Set **Engine** to **OpenRouter only**, or leave **Auto** (on-device → OpenRouter → Gemini).
+5. Press **Test AI** in Diagnostics to check it.
 
 ## If on-device AI shows "not available"
 

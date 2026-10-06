@@ -1,6 +1,6 @@
 const DEFAULTS = {
   enabled: true, autoCheck: true, disabledSites: [], ltLanguage: 'auto', motherTongue: 'ar', translateTarget: 'en', picky: false,
-  engine: 'auto', geminiKey: '', geminiModel: 'gemini-flash-latest', debug: false, ltServer: 'https://api.languagetool.org', ltUser: '', ltApiKey: '', dictionary: []
+  engine: 'auto', geminiKey: '', geminiModel: 'gemini-flash-latest', openrouterKey: '', openrouterModel: 'openrouter/auto', orFreeOnly: false, debug: false, ltServer: 'https://api.languagetool.org', ltUser: '', ltApiKey: '', dictionary: []
 };
 const LANGS = [['en', 'English'], ['ar', 'Arabic'], ['fr', 'French'], ['de', 'German'], ['es', 'Spanish'], ['it', 'Italian'], ['tr', 'Turkish'], ['pt', 'Portuguese'], ['ru', 'Russian'], ['zh', 'Chinese'], ['ja', 'Japanese'], ['hi', 'Hindi'], ['ur', 'Urdu']];
 const $ = (id) => document.getElementById(id);
@@ -28,10 +28,11 @@ async function init() {
   $('siteOn').disabled = !host;
   $('siteOn').checked = host ? !s.disabledSites.includes(host) : false;
   $('enabled').checked = s.enabled;
-  for (const id of ['autoCheck', 'picky', 'debug']) $(id).checked = !!s[id];
-  for (const id of ['ltLanguage', 'motherTongue', 'translateTarget', 'engine', 'geminiKey', 'geminiModel', 'ltServer', 'ltUser', 'ltApiKey']) $(id).value = s[id] ?? '';
+  for (const id of ['autoCheck', 'picky', 'debug', 'orFreeOnly']) $(id).checked = !!s[id];
+  for (const id of ['ltLanguage', 'motherTongue', 'translateTarget', 'engine', 'geminiKey', 'geminiModel', 'openrouterKey', 'openrouterModel', 'ltServer', 'ltUser', 'ltApiKey']) $(id).value = s[id] ?? '';
   $('dictionary').value = (s.dictionary || []).join('\n');
   refreshNano();
+  loadOrModels();
 }
 
 $('enabled').addEventListener('change', (e) => save({ enabled: e.target.checked }));
@@ -42,8 +43,46 @@ $('siteOn').addEventListener('change', (e) => {
 });
 for (const id of ['autoCheck', 'picky', 'debug']) $(id).addEventListener('change', (e) => save({ [id]: e.target.checked }));
 for (const id of ['ltLanguage', 'motherTongue', 'translateTarget', 'engine']) $(id).addEventListener('change', (e) => save({ [id]: e.target.value }));
-for (const id of ['geminiKey', 'geminiModel', 'ltServer', 'ltUser', 'ltApiKey']) $(id).addEventListener('change', (e) => save({ [id]: e.target.value.trim() }));
+for (const id of ['geminiKey', 'geminiModel', 'openrouterKey', 'openrouterModel', 'ltServer', 'ltUser', 'ltApiKey']) $(id).addEventListener('change', (e) => save({ [id]: e.target.value.trim() }));
 $('dictionary').addEventListener('change', (e) => save({ dictionary: e.target.value.split('\n').map((w) => w.trim()).filter(Boolean) }));
+
+// ----- OpenRouter: model list (public endpoint) + info for the chosen model
+let orModels = [];
+async function loadOrModels(force) {
+  try {
+    const { orCache } = await chrome.storage.local.get('orCache');
+    if (!force && orCache && Date.now() - orCache.t < 6 * 3600e3) orModels = orCache.list;
+    else {
+      $('orInfo').textContent = 'Loading model list…';
+      const res = await fetch('https://openrouter.ai/api/v1/models');
+      const data = await res.json();
+      orModels = (data.data || []).map((m) => ({
+        id: m.id, name: m.name, ctx: m.context_length,
+        free: (+m.pricing?.prompt || 0) === 0 && (+m.pricing?.completion || 0) === 0,
+        pin: +m.pricing?.prompt || 0, pout: +m.pricing?.completion || 0
+      })).sort((a, b) => a.id.localeCompare(b.id));
+      chrome.storage.local.set({ orCache: { t: Date.now(), list: orModels } });
+    }
+  } catch (e) { $('orInfo').textContent = 'Could not load model list (' + e.message + ') – you can still type a model id.'; return; }
+  fillOrModels();
+}
+function fillOrModels() {
+  const list = $('orModels');
+  list.replaceChildren();
+  for (const m of orModels) if (!s.orFreeOnly || m.free) list.append(new Option(m.name + (m.free ? ' · free' : ''), m.id));
+  showOrInfo();
+}
+function showOrInfo() {
+  const id = $('openrouterModel').value.trim();
+  const m = orModels.find((x) => x.id === id);
+  const shown = s.orFreeOnly ? orModels.filter((x) => x.free).length : orModels.length;
+  if (m) $('orInfo').textContent = `${m.name} · ${m.ctx ? Math.round(m.ctx / 1000) + 'k context · ' : ''}${m.free ? 'free' : `$${(m.pin * 1e6).toFixed(2)} in / $${(m.pout * 1e6).toFixed(2)} out per 1M tokens`}`;
+  else if (id === 'openrouter/auto' || !id) $('orInfo').textContent = `Auto router picks a model for each request (paid). ${shown} models in the list – click the Model box to choose.`;
+  else $('orInfo').textContent = orModels.length ? 'Model id not in the list – check the spelling.' : '';
+}
+$('openrouterModel').addEventListener('input', showOrInfo);
+$('orFreeOnly').addEventListener('change', (e) => { save({ orFreeOnly: e.target.checked }); fillOrModels(); });
+$('orReload').addEventListener('click', () => loadOrModels(true));
 
 // ----- Chrome built-in AI (Gemini Nano) status + download (needs a user click)
 const LM = () => self.LanguageModel || self.ai?.languageModel || null;
