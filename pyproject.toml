@@ -1,0 +1,32 @@
+[project]
+name = "writeassist"
+version = "1.0.0"
+description = "WriteAssist — AI writing, grammar, rewrite, and translation desktop assistant"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [
+    { name = "Mohamed Mahmoud", email = "mohamed.mahmoud@tqniat.com" }
+]
+dependencies = []
+
+[project.optional-dependencies]
+window = ["pywebview>=5.0"]
+all = ["pywebview>=5.0"]
+
+[project.scripts]
+writeassist = "writeassist.app:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+writeassist = [
+    "shared/i18n/*.json",
+    "modules/dashboard/infrastructure/static/*",
+    "modules/dashboard/infrastructure/static/favicon.svg",
+]

@@ -1,0 +1,29 @@
+cask "writeassist" do
+  arch arm: "arm64", intel: "x86_64"
+
+  version "@VERSION@"
+  sha256 arm:   "@SHA_ARM64@",
+         intel: "@SHA_X86_64@"
+
+  url "https://github.com/mohamedjs/write-assist/releases/download/v#{version}/WriteAssist-#{version}-macos-#{arch}.zip"
+  name "WriteAssist"
+  desc "AI writing, grammar, rewrite, and translation desktop assistant"
+  homepage "https://github.com/mohamedjs/write-assist"
+
+  depends_on macos: ">= :monterey"
+
+  app "WriteAssist.app"
+  binary "#{appdir}/WriteAssist.app/Contents/MacOS/writeassist"
+
+  postflight do
+    system_command "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{appdir}/WriteAssist.app"]
+  end
+
+  uninstall quit: "com.mohamedjs.writeassist"
+
+  zap trash: [
+    "~/Library/Application Support/WriteAssist",
+    "~/Library/Logs/WriteAssist",
+    "~/Library/LaunchAgents/com.mohamedjs.writeassist.plist",
+  ]
+end

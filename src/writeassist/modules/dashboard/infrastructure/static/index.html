@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>WriteAssist — Desktop Assistant</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="app.css">
+</head>
+<body>
+<div class="app-shell">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="brand">
+      <img src="favicon.svg" alt="WriteAssist Logo">
+      <span data-i18n="app.name">WriteAssist</span>
+    </div>
+
+    <ul class="nav-links">
+      <li><button class="nav-item active" data-tab="tab-editor">✍️ <span data-i18n="nav.editor">Writing Space</span></button></li>
+      <li><button class="nav-item" data-tab="tab-rewrite">✨ <span data-i18n="nav.rewrite">AI Rewrite</span></button></li>
+      <li><button class="nav-item" data-tab="tab-translate">🌐 <span data-i18n="nav.translate">Translate</span></button></li>
+      <li><button class="nav-item" data-tab="tab-replies">💬 <span data-i18n="nav.replies">Smart Replies</span></button></li>
+      <li><button class="nav-item" data-tab="tab-dictionary">📖 <span data-i18n="nav.dictionary">Dictionary</span></button></li>
+    </ul>
+
+    <div class="sidebar-footer">
+      <div class="status-pill">
+        <span class="dot" id="daemon-dot"></span>
+        <span id="daemon-status" data-i18n="status.ready">Ready</span>
+      </div>
+      <div class="theme-lang-bar">
+        <button class="btn-small" id="btn-settings">⚙️ <span data-i18n="nav.settings">Settings</span></button>
+        <button class="btn-small" id="btn-doctor">🩺 <span data-i18n="nav.doctor">Doctor</span></button>
+        <button class="btn-small" id="btn-lang" title="Toggle Language">عربي</button>
+        <button class="btn-small" id="btn-theme" title="Theme">◐</button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Workspace -->
+  <main class="workspace">
+    <!-- Top Bar -->
+    <header class="top-bar">
+      <h1 class="view-title" id="current-title" data-i18n="nav.editor">Writing Space</h1>
+      <div class="actions-row">
+        <button class="btn btn-secondary" id="btn-check-grammar"><span data-i18n="btn.check">Check Grammar</span></button>
+        <button class="btn btn-primary" id="btn-accept-all"><span data-i18n="btn.accept_all">Accept All Fixes</span></button>
+      </div>
+    </header>
+
+    <!-- Tab 1: Editor -->
+    <section class="tab-pane active" id="tab-editor">
+      <div class="editor-container">
+        <div class="editor-box">
+          <textarea class="editor-textarea" id="main-editor" placeholder="Type or paste your text here to check grammar, spelling, and style..."></textarea>
+          <div class="editor-stats">
+            <span id="editor-counts">0 words · 0 characters</span>
+            <span id="issues-summary">0 issues detected</span>
+          </div>
+        </div>
+        <div class="inspect-panel" id="issues-panel">
+          <div class="card" style="text-align:center; color:var(--muted); padding:2rem 1rem;">
+            No grammar or spelling issues detected.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tab 2: AI Rewrite -->
+    <section class="tab-pane" id="tab-rewrite">
+      <div class="card">
+        <h3 style="margin-bottom:0.75rem;">Select Tone & Style</h3>
+        <div class="tone-pills" id="tone-selector">
+          <button class="tone-btn active" data-tone="clearer and more concise">Clear & Concise</button>
+          <button class="tone-btn" data-tone="professional and polished">Professional</button>
+          <button class="tone-btn" data-tone="friendly and warm">Friendly</button>
+          <button class="tone-btn" data-tone="formal business">Formal</button>
+          <button class="tone-btn" data-tone="confident and assertive">Confident</button>
+          <button class="tone-btn" data-tone="detailed and expanded">Expand</button>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+          <div class="form-group">
+            <label>Original Text</label>
+            <textarea class="form-control" id="rewrite-input" rows="8" placeholder="Enter text to rewrite..."></textarea>
+          </div>
+          <div class="form-group">
+            <label>Rewritten Version</label>
+            <textarea class="form-control" id="rewrite-output" rows="8" readonly placeholder="Rewritten text will appear here..."></textarea>
+          </div>
+        </div>
+        <div style="margin-top:1rem; display:flex; justify-content:flex-end; gap:0.75rem;">
+          <button class="btn btn-secondary" id="btn-copy-rewrite">Copy Result</button>
+          <button class="btn btn-primary" id="btn-run-rewrite">Rewrite with AI</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tab 3: Translate -->
+    <section class="tab-pane" id="tab-translate">
+      <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+          <div class="form-group" style="width:200px;">
+            <label>Target Language</label>
+            <select class="form-control" id="translate-target">
+              <option value="en" selected>English</option>
+              <option value="ar">العربية (Arabic)</option>
+              <option value="fr">Français (French)</option>
+              <option value="es">Español (Spanish)</option>
+              <option value="de">Deutsch (German)</option>
+              <option value="tr">Türkçe (Turkish)</option>
+            </select>
+          </div>
+          <button class="btn btn-primary" id="btn-run-translate" style="margin-top:1.25rem;">Translate</button>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+          <div class="form-group">
+            <label>Source Text</label>
+            <textarea class="form-control" id="translate-input" rows="8" placeholder="Enter text in any language..."></textarea>
+          </div>
+          <div class="form-group">
+            <label>Translation</label>
+            <textarea class="form-control" id="translate-output" rows="8" readonly placeholder="Translation will appear here..."></textarea>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tab 4: Smart Replies -->
+    <section class="tab-pane" id="tab-replies">
+      <div class="card">
+        <div class="form-group" style="margin-bottom:1rem;">
+          <label>Incoming Email or Chat Message</label>
+          <textarea class="form-control" id="reply-context" rows="4" placeholder="Paste the message you received..."></textarea>
+        </div>
+        <button class="btn btn-primary" id="btn-generate-replies">Generate Smart Replies</button>
+        <div id="replies-container" style="margin-top:1.5rem; display:flex; flex-direction:column; gap:0.75rem;">
+          <!-- Suggestions appear here -->
+        </div>
+      </div>
+    </section>
+
+    <!-- Tab 5: Dictionary -->
+    <section class="tab-pane" id="tab-dictionary">
+      <div class="card">
+        <h3 style="margin-bottom:0.75rem;">Personal Dictionary</h3>
+        <p style="color:var(--muted); font-size:0.9rem; margin-bottom:1rem;">
+          Words added here will never be marked as typos or spelling errors.
+        </p>
+        <div style="display:flex; gap:0.75rem; margin-bottom:1.5rem;">
+          <input type="text" class="form-control" id="dict-input" placeholder="Add word or technical acronym...">
+          <button class="btn btn-primary" id="btn-dict-add">Add</button>
+        </div>
+        <div id="dict-list" style="display:flex; flex-wrap:wrap; gap:0.5rem;"></div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- Settings Modal -->
+<div class="modal-backdrop" id="modal-settings">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Settings</h3>
+      <button class="btn-small" id="btn-close-settings">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>LanguageTool API Server</label>
+        <input type="text" class="form-control" id="setting-lt-server" placeholder="https://api.languagetool.org">
+      </div>
+      <div class="form-group">
+        <label>AI Provider</label>
+        <select class="form-control" id="setting-ai-provider">
+          <option value="auto">Auto (Gemini -> OpenRouter)</option>
+          <option value="gemini">Google Gemini Only</option>
+          <option value="openrouter">OpenRouter Only</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Google Gemini API Key (Free)</label>
+        <input type="password" class="form-control" id="setting-gemini-key" placeholder="AIzaSy...">
+      </div>
+      <div class="form-group">
+        <label>Gemini Model</label>
+        <input type="text" class="form-control" id="setting-gemini-model" placeholder="gemini-2.5-flash">
+      </div>
+      <div class="form-group">
+        <label>OpenRouter API Key (Optional)</label>
+        <input type="password" class="form-control" id="setting-openrouter-key" placeholder="sk-or-v1-...">
+      </div>
+      <div class="form-group">
+        <label>Local Port</label>
+        <input type="number" class="form-control" id="setting-port" placeholder="43817">
+      </div>
+      <div style="display:flex; align-items:center; gap:0.5rem;">
+        <input type="checkbox" id="setting-autostart">
+        <label for="setting-autostart">Launch WriteAssist on computer startup</label>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" id="btn-cancel-settings">Cancel</button>
+      <button class="btn btn-primary" id="btn-save-settings">Save Settings</button>
+    </div>
+  </div>
+</div>
+
+<!-- Doctor Diagnostics Modal -->
+<div class="modal-backdrop" id="modal-doctor">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>System Diagnostics (Doctor)</h3>
+      <button class="btn-small" id="btn-close-doctor">✕</button>
+    </div>
+    <div class="modal-body" id="doctor-results">
+      <p style="color:var(--muted);">Running diagnostic self-test checks...</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" id="btn-rerun-doctor">Re-run Checks</button>
+      <button class="btn btn-primary" id="btn-dismiss-doctor">Done</button>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

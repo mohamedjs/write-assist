@@ -1,0 +1,13 @@
+[Unit]
+Description=WriteAssist Background Service
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/opt/writeassist/writeassist run --no-window
+Restart=on-failure
+RestartSec=3
+RestartPreventExitStatus=78
+
+[Install]
+WantedBy=default.target

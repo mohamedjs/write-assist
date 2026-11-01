@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=WriteAssist
+Comment=AI Writing, Grammar, Rewrite and Translation Assistant
+Exec=/opt/writeassist/writeassist dashboard
+Icon=writeassist
+Terminal=false
+Categories=Utility;Office;TextEditor;
+StartupWMClass=writeassist

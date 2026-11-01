@@ -1,2 +1,31 @@
+# Operating System
 .DS_Store
+Thumbs.db
+
+# Logs
 *.log
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+dist/
+build/
+.venv/
+env/
+venv/
+
+# Testing & Coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Static site build output
+_site/
+release.json
+
+# Local overrides
+.env
+.env.local

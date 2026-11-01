@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WriteAssist — Free AI Grammar, Rewrite & Translate</title>
+<meta name="description" content="AI writing assistant for Windows, macOS, Linux, and Chromium browsers. Free grammar checking, tone rewriting, translation, and smart replies.">
+<meta property="og:title" content="WriteAssist — Free AI Grammar, Rewrite & Translate">
+<meta property="og:description" content="Free writing assistant: grammar check, AI rewrite, sentence fixes, and translation. Available as a native desktop app and browser extension.">
+<meta property="og:type" content="website">
+<meta name="theme-color" content="#2563eb">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="site.css">
+<script src="site.js" defer></script>
+</head>
+<body>
+<div class="paper">
+
+<nav class="nav">
+  <a class="brand" href="#top"><img src="assets/favicon.svg" alt="" class="logo"><span data-i18n="brand.name">WriteAssist</span></a>
+  <div class="links">
+    <a href="#download" data-i18n="nav.download">Download</a>
+    <a href="#features" data-i18n="nav.features">Features</a>
+    <a href="#extension" data-i18n="nav.extension">Extension</a>
+    <a href="#faq" data-i18n="nav.faq">FAQ</a>
+  </div>
+  <div class="nav-actions">
+    <div class="seg small" id="lang" role="group" aria-label="Language"><button data-value="en">EN</button><button data-value="ar">ع</button></div>
+    <button class="icon-btn" id="theme" aria-label="Theme">◐</button>
+  </div>
+</nav>
+
+<header class="hero" id="top">
+  <div class="hero-copy">
+    <h1 data-i18n="hero.title">Write with total clarity and confidence.</h1>
+    <p class="lead" data-i18n="hero.lead">Free Grammarly-style assistant for your entire operating system and browser: grammar & spell check, AI tone rewrite, smart replies, and instant translation.</p>
+    <div class="row">
+      <a class="btn primary big" id="hero-download" href="#download"><span class="os-icon" id="hero-icon"></span><span id="hero-download-text">Download</span></a>
+      <a class="btn ghost" href="#extension" data-i18n="hero.ext_btn">Browser Extension</a>
+    </div>
+    <p class="hint" id="hero-version">Version 1.0.0 · Free & Open Source</p>
+  </div>
+  <div class="hero-face card">
+    <div style="text-align:center; padding:1.5rem 1rem;">
+      <img src="assets/favicon.svg" style="width:110px; height:110px; margin-bottom:1rem;" alt="WriteAssist">
+      <h3 data-i18n="hero.card_title" style="margin-bottom:0.4rem;">Zero Setup Required</h3>
+      <p style="font-size:0.9rem; color:var(--muted);" data-i18n="hero.card_desc">Grammar check works immediately out of the box with free tools.</p>
+    </div>
+    <div class="say"><span class="dot"></span><span data-i18n="hero.badge">Ready for your OS</span></div>
+  </div>
+</header>
+
+<section id="download" class="section">
+  <h2 data-i18n="dl.title">Download WriteAssist</h2>
+  <p class="sub" data-i18n="dl.sub">Native desktop application and browser extension for every major platform.</p>
+  <div class="grid3" id="platforms" style="grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));">
+    <article class="card platform" data-os="windows">
+      <div class="os-head"><span class="os-icon win"></span><h3>Windows</h3><span class="badge" data-i18n="dl.yours">your device</span></div>
+      <p class="hint" data-i18n="dl.win.req">Windows 10 or 11, 64-bit</p>
+      <a class="btn primary block" data-asset="setup" data-i18n="dl.win.setup">Download Installer (.exe)</a>
+      <a class="btn ghost block" data-asset="portable" data-i18n="dl.win.portable">Portable ZIP (No Install)</a>
+      <p class="note" data-i18n="dl.win.note">Windows SmartScreen note: Select More info → Run anyway on first run.</p>
+    </article>
+
+    <article class="card platform" data-os="macos">
+      <div class="os-head"><span class="os-icon mac"></span><h3>macOS</h3><span class="badge" data-i18n="dl.yours">your device</span></div>
+      <p class="hint" data-i18n="dl.mac.req">macOS 12 Monterey or later</p>
+      <a class="btn primary block" data-asset="mac-arm" data-i18n="dl.mac.arm">Apple Silicon (M1–M4)</a>
+      <a class="btn ghost block" data-asset="mac-intel" data-i18n="dl.mac.intel">Intel Mac (.zip)</a>
+      <div class="cmd"><code id="brew-cmd">brew install --cask mohamedjs/tap/writeassist</code><button class="copy" data-i18n="dl.copy">Copy</button></div>
+    </article>
+
+    <article class="card platform" data-os="linux">
+      <div class="os-head"><span class="os-icon linux"></span><h3>Linux</h3><span class="badge" data-i18n="dl.yours">your device</span></div>
+      <p class="hint" data-i18n="dl.linux.req">Ubuntu, Debian and Linux distros</p>
+      <a class="btn primary block" data-asset="deb" data-i18n="dl.linux.deb">Download .deb (Debian/Ubuntu)</a>
+      <a class="btn ghost block" data-asset="tar" data-i18n="dl.linux.tar">Portable .tar.gz (All Distros)</a>
+      <div class="cmd"><code id="apt-cmd">sudo apt install ./writeassist_1.0.0_amd64.deb</code><button class="copy" data-i18n="dl.copy">Copy</button></div>
+    </article>
+
+    <article class="card platform" data-os="extension">
+      <div class="os-head"><span style="font-size:1.6rem; line-height:1;">🧩</span><h3>Browser Extension</h3></div>
+      <p class="hint" data-i18n="dl.ext.req">Chrome, Edge, Brave, Opera, Vivaldi</p>
+      <a class="btn primary block" data-asset="ext" data-i18n="dl.ext.download">Download Extension ZIP</a>
+      <a class="btn ghost block" href="#extension" data-i18n="dl.ext.instructions">Installation Guide</a>
+      <p class="note" data-i18n="dl.ext.note">Works seamlessly in Gmail, Slack, WhatsApp Web, LinkedIn, and everywhere you type.</p>
+    </article>
+  </div>
+  <p class="center hint" style="margin-top:2rem;"><a id="all-releases" target="_blank" rel="noopener" data-i18n="dl.all">All releases on GitHub</a> · <a id="checksums" target="_blank" rel="noopener">SHA256 Checksums</a></p>
+</section>
+
+<section class="section" id="features">
+  <h2 data-i18n="feat.title">Everything you need to write better</h2>
+  <div class="grid3">
+    <div class="card feat"><span style="font-size:1.8rem;">⚡</span><h3 data-i18n="feat.1.t">Instant Grammar & Spelling</h3><p data-i18n="feat.1.d">LanguageTool-powered detection with click-to-fix suggestions and one-click Accept All.</p></div>
+    <div class="card feat"><span style="font-size:1.8rem;">✨</span><h3 data-i18n="feat.2.t">AI Tone Rewriter</h3><p data-i18n="feat.2.d">Rephrase any message into Professional, Casual, Formal, Concise, Confident, or Expanded style.</p></div>
+    <div class="card feat"><span style="font-size:1.8rem;">🔍</span><h3 data-i18n="feat.3.t">Sentence-by-Sentence Fix</h3><p data-i18n="feat.3.d">Inspect and correct individual sentences without rewriting your entire message.</p></div>
+    <div class="card feat"><span style="font-size:1.8rem;">🌐</span><h3 data-i18n="feat.4.t">Bilingual Translation</h3><p data-i18n="feat.4.d">Seamless Arabic ↔ English translation and multilingual support directly inside your workflow.</p></div>
+    <div class="card feat"><span style="font-size:1.8rem;">💬</span><h3 data-i18n="feat.5.t">Smart Reply Suggestions</h3><p data-i18n="feat.5.d">Generate 3 contextual reply alternatives for emails, chat messages, and inquiries.</p></div>
+    <div class="card feat"><span style="font-size:1.8rem;">🛡️</span><h3 data-i18n="feat.6.t">Privacy-First Architecture</h3><p data-i18n="feat.6.d">No tracking, no telemetry, customizable LanguageTool endpoint, and personal dictionary.</p></div>
+  </div>
+</section>
+
+<section class="section" id="extension">
+  <div class="card" style="padding:2.5rem;">
+    <h2 style="text-align:left; margin-bottom:1rem;" data-i18n="ext.title">How to Install the Browser Extension</h2>
+    <p class="lead" style="margin-bottom:1.5rem;" data-i18n="ext.lead">Add WriteAssist to any Chromium browser in less than a minute:</p>
+    <div class="steps" style="display:flex; flex-direction:column; gap:1rem;">
+      <div style="display:flex; gap:1rem; align-items:flex-start;">
+        <span style="background:var(--accent); color:white; width:28px; height:28px; border-radius:50%; display:grid; place-items:center; font-weight:700; flex:none;">1</span>
+        <div><strong data-i18n="ext.step1.t">Download & Extract</strong><p class="hint" data-i18n="ext.step1.d">Download writeassist-extension.zip from above and extract it into a folder on your computer.</p></div>
+      </div>
+      <div style="display:flex; gap:1rem; align-items:flex-start;">
+        <span style="background:var(--accent); color:white; width:28px; height:28px; border-radius:50%; display:grid; place-items:center; font-weight:700; flex:none;">2</span>
+        <div><strong data-i18n="ext.step2.t">Open Extensions Page</strong><p class="hint" data-i18n="ext.step2.d">In Chrome, Edge, or Brave, open chrome://extensions and switch on Developer mode (top right).</p></div>
+      </div>
+      <div style="display:flex; gap:1rem; align-items:flex-start;">
+        <span style="background:var(--accent); color:white; width:28px; height:28px; border-radius:50%; display:grid; place-items:center; font-weight:700; flex:none;">3</span>
+        <div><strong data-i18n="ext.step3.t">Load Unpacked</strong><p class="hint" data-i18n="ext.step3.d">Click Load unpacked, select the extracted extension folder, and pin the WriteAssist icon!</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="faq">
+  <h2 data-i18n="faq.title">Frequently Asked Questions</h2>
+  <div class="faq" style="display:flex; flex-direction:column; gap:1rem; margin-top:2rem;">
+    <details class="card"><summary style="font-weight:600; cursor:pointer;" data-i18n="faq.1.q">Is WriteAssist really free?</summary><p style="margin-top:0.75rem; color:var(--muted);" data-i18n="faq.1.a">Yes, 100%. Grammar checking uses the free public LanguageTool API with zero API keys required. AI rewrites can use Google's free Gemini API key or your own OpenRouter credentials.</p></details>
+    <details class="card"><summary style="font-weight:600; cursor:pointer;" data-i18n="faq.2.q">Can I use both the desktop app and the extension together?</summary><p style="margin-top:0.75rem; color:var(--muted);" data-i18n="faq.2.a">Yes! The desktop app runs as a local background daemon that provides a standalone desktop writing workspace and can serve requests locally.</p></details>
+    <details class="card"><summary style="font-weight:600; cursor:pointer;" data-i18n="faq.3.q">How is my text protected?</summary><p style="margin-top:0.75rem; color:var(--muted);" data-i18n="faq.3.a">Your text is never sold or used to train public models. You can also self-host LanguageTool and point WriteAssist to your private instance in Settings.</p></details>
+  </div>
+</section>
+
+<footer class="foot" style="margin-top:5rem; padding-top:2rem; border-top:1px solid var(--line); text-align:center; color:var(--muted);">
+  <img src="assets/favicon.svg" alt="" class="logo small" style="margin-bottom:0.75rem;">
+  <p><span data-i18n="foot.made">Built with modular architecture and care</span> · <a id="foot-repo" target="_blank" rel="noopener">GitHub</a> · <span id="foot-version">v1.0.0</span></p>
+</footer>
+</div>
+</body>
+</html>

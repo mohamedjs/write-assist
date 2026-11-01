@@ -1,62 +1,133 @@
-# WriteAssist – free Grammarly-style Chrome extension
+# WriteAssist
 
-Works in any text box on any site: Gmail, Outlook, WhatsApp Web, Slack, Telegram Web, LinkedIn, Discord, Messenger, plain forms…
+> **Free, privacy-friendly AI writing, grammar, rewrite, and translation assistant.**  
+> Available as a native desktop application for **Linux, macOS, and Windows**, and as a **browser extension** for Chrome, Edge, Brave, and other Chromium browsers.
 
-## What it does
+🌐 **Landing Page & Downloads:** [https://mohamedjs.github.io/write-assist/](https://mohamedjs.github.io/write-assist/)
+
+---
+
+## ⚡ Key Capabilities
 
 | Feature | How | Cost |
 |---|---|---|
-| Red/orange/blue underlines for spelling, grammar and style, with a click-to-fix card | LanguageTool public API | Free, no key (about 20 checks/min) |
-| Badge in the corner of the text box that shows the issue count, plus **Accept all** | — | — |
-| ✨ **AI fix** (rewrites the whole message correctly) | Chrome built-in Gemini Nano → OpenRouter (your key + any model) → free Gemini API key | Free / your OpenRouter credits |
-| **Fix by sentence**: AI checks each sentence and shows before → after, with Fix / Accept all. Also **✨ Fix sentence** on every underline card | Same AI | Free |
-| **Rewrite**: clearer, professional, formal, friendly, shorter, confident, expand | Same AI | Free |
-| **Reply suggestions**: 3 options for emails and chats; it reads the last message on Gmail, WhatsApp, Slack and Telegram | Same AI | Free |
-| **Translate**: write in Arabic, translate to English, then Replace | Chrome Translator API → Google Translate free endpoint | Free |
-| Selection toolbar on any page: Translate, Fix, Rewrite, Reply | — | — |
-| Right-click menu, personal dictionary, turn off per site | — | — |
+| **Real-time Grammar & Spellcheck** | LanguageTool public API (or custom self-hosted server) with click-to-fix suggestions and one-click *Accept All* | Free, no key needed |
+| **AI Rewrite** | Professional, Casual/Friendly, Formal, Concise, Confident, or Expand tones | Free Gemini API key or OpenRouter |
+| **Fix by Sentence** | Checks and corrects individual sentences at the cursor | Free / OpenRouter |
+| **Smart Reply Generator** | 3 contextual response alternatives for emails and chats | Free / OpenRouter |
+| **Bilingual Translation** | Seamless Arabic ↔ English translation plus multilingual support | Free Google Translate API |
+| **Personal Dictionary** | Never mark your technical terms, names, or brand words as typos | Stored locally |
+| **100% Privacy-First** | No telemetry, no selling text, customizable endpoints | Free & Open Source |
 
-Shortcuts: `Alt+Shift+G` opens the panel. `Alt+Shift+F` runs an AI fix on the whole text box. `Alt+Shift+S` fixes only the sentence your cursor is in. You can change them at `chrome://extensions/shortcuts`.
+---
 
-## Install (developer mode)
+## 📦 Multi-OS Releases
 
-1. Open `chrome://extensions`.
-2. Turn on **Developer mode** (top right).
-3. Click **Load unpacked** and choose this `write-assist` folder.
-4. Pin the **W** icon. Open the popup and either:
-   - click **Download on-device AI model** (Chrome 138+ on a capable Mac/PC; one-time download of a few GB), or
-   - paste a **free Gemini API key** from https://aistudio.google.com/apikey (works on any machine).
-5. Reload any tabs that were already open.
+Every release builds automated installers for all platforms:
 
-The grammar check works right away with nothing to set up.
+- **Windows:** `WriteAssist-Setup-1.0.0.exe` (per-user, no admin prompt) and portable `.zip`
+- **macOS:** `WriteAssist-1.0.0-macos-arm64.zip` (Apple Silicon M1–M4) and `WriteAssist-1.0.0-macos-x86_64.zip` (Intel)
+- **Linux:** `writeassist_1.0.0_amd64.deb` (Debian/Ubuntu with user service and desktop icon) and portable `.tar.gz`
+- **Browser Extension:** `writeassist-1.0.0-extension.zip` for Chrome, Edge, Brave, and Chromium browsers
 
-### Use OpenRouter
+---
 
-1. Create a key at https://openrouter.ai/settings/keys.
-2. In the popup → **AI**, paste it in **OpenRouter → API key**.
-3. Click the **Model** box and pick any model (tick **Show free models only** for `:free` models), or type a model id like `anthropic/claude-sonnet-4.5`.
-4. Set **Engine** to **OpenRouter only**, or leave **Auto** (on-device → OpenRouter → Gemini).
-5. Press **Test AI** in Diagnostics to check it.
+## 🖥️ Desktop Application (Linux, macOS, Windows)
 
-## If on-device AI shows "not available"
+The desktop application operates under the **Daemon + Native Window** pattern:
 
-- Update Chrome (138 or newer).
-- Check `chrome://on-device-internals` to see whether your hardware is supported (it needs about 22 GB of free disk space and a GPU with more than 4 GB VRAM, or 16 GB RAM).
-- Or use the Gemini key. The free tier is plenty for personal use.
+```bash
+# Start background daemon (and open dashboard window)
+writeassist run
 
-## Privacy
+# Run silently in background (systemd / autostart login)
+writeassist run --no-window
 
-- Text you type is sent to LanguageTool (api.languagetool.org) for grammar checking. You can point it at your own LanguageTool server in **Advanced**.
-- On-device AI never leaves your computer. The Gemini API and Google Translate send the text to Google.
-- To skip sensitive sites, turn them off with the site switch in the popup. Password fields are never touched.
+# Open the desktop dashboard workspace
+writeassist dashboard
 
-## Files
+# Run system diagnostic checks
+writeassist doctor
 
+# Check version
+writeassist --version
 ```
-manifest.json
-src/background.js        service worker: LanguageTool, Gemini API, Google Translate, routing
-src/offscreen.*          runs Chrome built-in AI (Prompt / Translator / LanguageDetector APIs)
-src/content/textmap.js   text ↔ DOM mapping for textarea / contenteditable, safe text replacement
-src/content/content.js   underlines, suggestion card, panel, selection toolbar
-popup/                   settings popup (also the options page)
+
+### Installation
+
+#### Linux (Debian / Ubuntu)
+```bash
+sudo apt install ./writeassist_1.0.0_amd64.deb
 ```
+
+#### macOS (Homebrew)
+```bash
+brew install --cask mohamedjs/tap/writeassist
+```
+
+#### Windows
+Run `WriteAssist-Setup-1.0.0.exe` and follow the modern setup wizard.
+
+---
+
+## 🧩 Browser Extension
+
+Works on all websites: Gmail, Outlook, Slack, WhatsApp Web, Telegram Web, LinkedIn, forms, and editors.
+
+### Developer Mode Installation:
+1. Open `chrome://extensions` in Chrome, Edge, or Brave.
+2. Enable **Developer mode** (top right switch).
+3. Click **Load unpacked** and select the `extension/` directory.
+4. Pin the **W** icon to your toolbar!
+
+---
+
+## 🏛️ Modular Monolith Architecture
+
+The codebase strictly adheres to the **Layered Modular Monolith DDD Architecture**:
+
+```text
+src/writeassist/
+├── __init__.py                      # Package metadata (__version__ = "1.0.0")
+├── __main__.py                      # Entrypoint for python -m writeassist
+├── app.py                           # CLI router (run, dashboard, window, doctor)
+├── bootstrap.py                     # Single Composition Root wiring all modules
+├── selftest.py                      # Diagnostic doctor checks
+├── shared/                          # Shared kernel (zero dependency on modules)
+│   ├── paths.py                     # Per-OS config/data/log directories
+│   ├── events.py                    # Typed synchronous in-process EventBus
+│   ├── errors.py                    # Structured application errors
+│   ├── desktop.py                   # OS autostart & desktop entry registration
+│   ├── platform.py                  # Platform flags (Windows, Mac, Linux)
+│   └── i18n/                        # Bilingual translations (en.json, ar.json)
+└── modules/
+    ├── settings/                    # Domain, application service, JSON store adapter
+    ├── dictionary/                  # Domain, application service, file store adapter
+    ├── assistant/                   # Pure domain, LanguageTool, Gemini, OpenRouter, Translator
+    ├── server/                      # HTTP REST API dispatcher & loopback server
+    └── dashboard/                   # Web dashboard assets & chromeless native window
+```
+
+### Architectural Boundary Guarantees:
+1. **Public Boundary Only:** Modules are imported strictly via `writeassist.modules.<name>`, never reaching into internal `.infrastructure` or `.application`.
+2. **Strict Inward Dependency:** `infrastructure` → `application` → `domain` (Domain has ZERO I/O).
+3. **Single Composition Root:** All wiring occurs solely inside `bootstrap.py`.
+4. **Automated Verification:** Verified by AST inspection in `tests/test_architecture.py`.
+
+---
+
+## 🧪 Testing
+
+```bash
+# Run all test suites
+PYTHONPATH=src:tests python3 tests/run_all.py
+
+# Run architecture boundary tests
+PYTHONPATH=src python3 tests/test_architecture.py
+```
+
+---
+
+## 📄 License
+
+MIT License. Open source and free for everyone.
