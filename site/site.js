@@ -6,7 +6,15 @@ const STORAGE_PREFIX = "writeassist";
 const T = {
   en: {
     "brand.name": "WriteAssist",
-    "nav.download": "Download", "nav.features": "Features", "nav.extension": "Extension", "nav.faq": "FAQ",
+    "nav.screenshots": "Screenshots", "nav.download": "Download", "nav.features": "Features", "nav.extension": "Extension", "nav.faq": "FAQ",
+    "gallery.title": "Real Screenshots of WriteAssist in Action",
+    "gallery.sub": "Explore the real desktop workspace, AI rewrite engine, smart replies, and system diagnostics.",
+    "gallery.editor": "Writing Space: LanguageTool grammar detection with click-to-fix suggestions & Accept All",
+    "gallery.rewrite": "AI Rewrite: Professional, Friendly, Formal, and Concise tone transformations via OpenRouter",
+    "gallery.replies": "Smart Replies: 3 context-aware reply alternatives generated instantly with one-click copy",
+    "gallery.translate": "Instant Translation: Seamless bidirectional Arabic ↔ English & multilingual translation",
+    "gallery.doctor": "System Diagnostics: Real-time self-test verifying local loopback, LanguageTool & AI engines [PASS]",
+    "gallery.popup": "Browser Extension: Native popup with auto-check toggle, on-device AI status & instant shortcuts",
     "hero.title": "Write with total clarity and confidence.",
     "hero.lead": "Free Grammarly-style assistant for your entire operating system and browser: grammar & spell check, AI tone rewrite, smart replies, and instant translation.",
     "hero.download": "Download for {os}", "hero.other": "Other platforms", "hero.badge": "Ready for your OS",
@@ -43,7 +51,15 @@ const T = {
   },
   ar: {
     "brand.name": "رايت أسيست",
-    "nav.download": "التحميل", "nav.features": "المميزات", "nav.extension": "إضافة المتصفح", "nav.faq": "الأسئلة الشائعة",
+    "nav.screenshots": "لقطات شاشة", "nav.download": "التحميل", "nav.features": "المميزات", "nav.extension": "إضافة المتصفح", "nav.faq": "الأسئلة الشائعة",
+    "gallery.title": "لقطات حقيقية من داخل تطبيق WriteAssist",
+    "gallery.sub": "استكشف مساحة الكتابة المكتبية الحقيقية، محرك الصياغة الذكي، الردود المقترحة والفحص التشخيصي.",
+    "gallery.editor": "مساحة الكتابة: فحص قواعد دقيق عبر LanguageTool مع اقتراحات فورية وزر لقبول الكل",
+    "gallery.rewrite": "إعادة الصياغة: تحويل النبرة إلى احترافية، ودية، رسمية، أو موجزة عبر OpenRouter",
+    "gallery.replies": "اقتراح الردود: 3 بدائل ردود ذكية وسياقية مولدة فوراً مع زر نسخ سريع",
+    "gallery.translate": "الترجمة الفورية: ترجمة ثنائية دقيقة بين العربية والإنجليزية ومتعددة اللغات",
+    "gallery.doctor": "الفحص التشخيصي: فحص ذاتي فوري يؤكد جاهزية الخادم ومحرك اللغة ومفاتيح الذكاء الاصطناعي [PASS]",
+    "gallery.popup": "إضافة المتصفح: نافذة كروم المتكاملة مع مفتاح التفعيل التلقائي وحالة الذكاء الاصطناعي",
     "hero.title": "اكتب بثقة ووضوح تام وبدون أخطاء.",
     "hero.lead": "مساعد مجاني شبيه بـ Grammarly لنظام تشغيلك بالكامل والمتصفح: تصحيح القواعد والإملاء، إعادة الصياغة بالذكاء الاصطناعي، اقتراح الردود والترجمة الفورية.",
     "hero.download": "تحميل لنظام {os}", "hero.other": "أنظمة أخرى", "hero.badge": "جاهز لجهازك",
@@ -203,6 +219,12 @@ function applyLang() {
       video.load();
     }
   }
+
+  // Gallery screenshots switching
+  if ($("#shot-editor")) $("#shot-editor").src = `assets/shots/editor-${lang}.png`;
+  if ($("#shot-rewrite")) $("#shot-rewrite").src = `assets/shots/rewrite-${lang}.png`;
+  if ($("#shot-translate")) $("#shot-translate").src = `assets/shots/translate-${lang}.png`;
+  if ($("#shot-doctor")) $("#shot-doctor").src = `assets/shots/doctor-${lang}.png`;
 
   renderDownloads();
 }

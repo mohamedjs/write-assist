@@ -73,11 +73,14 @@ def run_checks(settings=None) -> list[CheckResult]:
         results.append(CheckResult("Desktop Window Backend", "PASS", "Will use system default web browser fallback"))
 
     # 6. AI Provider Keys
+    has_ai = False
+    if settings and settings.openrouter_key.strip():
+        results.append(CheckResult("OpenRouter AI Engine", "PASS", f"Configured ({settings.openrouter_model})"))
+        has_ai = True
     if settings and settings.gemini_key.strip():
-        results.append(CheckResult("Gemini AI API Key", "PASS", "Configured"))
-    elif settings and settings.openrouter_key.strip():
-        results.append(CheckResult("OpenRouter API Key", "PASS", "Configured"))
-    else:
+        results.append(CheckResult("Gemini AI Engine", "PASS", f"Configured ({settings.gemini_model})"))
+        has_ai = True
+    if not has_ai:
         results.append(CheckResult("AI Rewrite & Reply", "WARN", "No API key configured (grammar check still works without keys)"))
 
     return results
