@@ -122,6 +122,58 @@ def cmd_doctor(args) -> int:
     return print_doctor(c.settings.current)
 
 
+def cmd_assist(args) -> int:
+    """Check, fix, or rewrite text in the currently active OS application."""
+    from .bootstrap import build
+
+    c = build()
+    action = args.action or "fix"
+    tone = args.tone or "clear"
+    target = args.target or "en"
+    in_place = not args.copy_only
+
+    print(f"Checking text in active desktop application...")
+    res = c.system_assist.assist_active_app(action=action, tone=tone, target_lang=target, in_place=in_place)
+
+    if not res.success:
+        print(f"[{res.active_app}] Assist failed: {res.error_message}", file=sys.stderr)
+        return 1
+
+    print(f"[{res.active_app}] Action: {res.action} · Issues found: {res.issue_count}")
+    if in_place:
+        print(f"Successfully replaced text directly inside {res.active_app}!")
+    else:
+        print(f"Copied improved text to clipboard:")
+        print(res.improved_text)
+    return 0
+
+
+def cmd_watch(args) -> int:
+    """Watch clipboard in background and assist whenever text is copied across OS apps."""
+    from .bootstrap import build
+
+    c = build()
+    print("WriteAssist OS Watcher running... (Press Ctrl+C to stop)")
+    print("Write in any app (Notes, Word, Excel, Slack) and copy text to get instant assistance.")
+
+    def on_clip(app: str, text: str):
+        print(f"\n[Detected in {app}]: \"{text[:60]}...\"")
+        res = c.assistant.check_grammar(text)
+        count = len(res.matches)
+        print(f"  -> Found {count} issues.")
+        if count > 0:
+            for m in res.matches[:3]:
+                print(f"     • {m.message} (suggestions: {', '.join(m.replacements[:3])})")
+
+    c.system_assist.start_watcher(on_clip)
+    try:
+        threading.Event().wait()
+    except KeyboardInterrupt:
+        c.system_assist.stop_watcher()
+        print("\nWatcher stopped.")
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="writeassist",
@@ -149,6 +201,16 @@ def build_parser() -> argparse.ArgumentParser:
     subparsers.add_parser("doctor", help="Run system diagnostics and verify dependencies")
     subparsers.add_parser("selftest", help="Alias for doctor")
 
+    # assist (OS wide active app)
+    p_ast = subparsers.add_parser("assist", help="Check, fix, or rewrite text in the currently active OS application")
+    p_ast.add_argument("--action", choices=["fix", "rewrite", "translate"], default="fix", help="Assistance action")
+    p_ast.add_argument("--tone", default="clear", help="Tone for AI rewrite (e.g. professional, friendly, formal)")
+    p_ast.add_argument("--target", default="en", help="Target language for translation (default: en)")
+    p_ast.add_argument("--copy-only", action="store_true", help="Copy result to clipboard without replacing in-place")
+
+    # watch (OS wide background listener)
+    subparsers.add_parser("watch", help="Monitor clipboard and writing in background across all OS applications")
+
     return parser
 
 
@@ -172,6 +234,10 @@ def main(argv: list[str] | None = None) -> int:
         return cmd_window(args)
     if args.command in ("doctor", "selftest"):
         return cmd_doctor(args)
+    if args.command == "assist":
+        return cmd_assist(args)
+    if args.command == "watch":
+        return cmd_watch(args)
 
     parser.print_help()
     return 1

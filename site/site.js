@@ -192,6 +192,18 @@ function applyLang() {
   });
   $$("#lang button").forEach((b) => b.classList.toggle("on", b.dataset.value === lang));
   document.title = `${t("brand.name")} — ${t("hero.title")}`;
+
+  const video = $("#intro");
+  if (video) {
+    const src = `assets/intro-${lang}.mp4`;
+    if (!video.currentSrc || !video.currentSrc.endsWith(src)) {
+      video.poster = `assets/intro-${lang}.jpg`;
+      const source = video.querySelector("source");
+      if (source) source.src = src;
+      video.load();
+    }
+  }
+
   renderDownloads();
 }
 

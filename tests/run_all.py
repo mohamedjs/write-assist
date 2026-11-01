@@ -12,6 +12,7 @@ import test_architecture
 import test_settings
 import test_assistant
 import test_server
+import test_system_assist
 
 
 def main() -> int:
@@ -20,6 +21,7 @@ def main() -> int:
         ("Settings Suite", lambda: (test_settings.test_settings_defaults(), test_settings.test_settings_persistence(), 0)[2]),
         ("Assistant Suite", lambda: (test_assistant.test_dictionary_filtering(), test_assistant.test_rewrite_and_reply(), 0)[2]),
         ("Server API Suite", lambda: (test_server.test_api_dispatcher(), 0)[1]),
+        ("System Assist Suite", lambda: (test_system_assist.test_system_assist_in_place_fix(), test_system_assist.test_system_assist_word_excel(), 0)[2]),
     ]
 
     failed = False

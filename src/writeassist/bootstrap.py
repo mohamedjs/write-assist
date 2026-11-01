@@ -18,6 +18,7 @@ from .modules.dashboard import (
 from .modules.dictionary import DictionaryService, FileDictionaryAdapter
 from .modules.server import ApiDispatcher, HttpServer
 from .modules.settings import JsonSettingsAdapter, Settings, SettingsService
+from .modules.system_assist import NativeOsBridge, OsClipboardAdapter, SystemAssistService
 from .selftest import run_checks
 from .shared import events, paths
 
@@ -31,6 +32,7 @@ class Container:
     dispatcher: ApiDispatcher
     server: DashboardServer
     dashboard: DashboardService
+    system_assist: SystemAssistService
 
 
 def build() -> Container:
@@ -147,6 +149,19 @@ def build() -> Container:
         default_url_provider=lambda: dashboard_server.url,
     )
 
+    # 7. System-Wide OS Assistant
+    clipboard_adapter = OsClipboardAdapter()
+    os_bridge = NativeOsBridge(clipboard=clipboard_adapter)
+    system_assist_service = SystemAssistService(
+        clipboard=clipboard_adapter,
+        active_app=os_bridge,
+        injector=os_bridge,
+        check_grammar_fn=api_check_grammar,
+        rewrite_fn=api_rewrite,
+        translate_fn=api_translate,
+        on_assisted=lambda data: bus.publish("system.assisted", data),
+    )
+
     return Container(
         bus=bus,
         settings=settings_service,
@@ -155,4 +170,5 @@ def build() -> Container:
         dispatcher=dispatcher,
         server=dashboard_server,
         dashboard=dashboard_service,
+        system_assist=system_assist_service,
     )
