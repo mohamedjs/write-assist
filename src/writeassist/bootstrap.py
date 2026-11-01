@@ -16,6 +16,7 @@ from .modules.dashboard import (
     show_window,
 )
 from .modules.dictionary import DictionaryService, FileDictionaryAdapter
+from .modules.overlay import OverlayService, create_default_overlay_adapter
 from .modules.server import ApiDispatcher, HttpServer
 from .modules.settings import JsonSettingsAdapter, Settings, SettingsService
 from .modules.system_assist import NativeOsBridge, OsClipboardAdapter, SystemAssistService
@@ -33,6 +34,7 @@ class Container:
     server: DashboardServer
     dashboard: DashboardService
     system_assist: SystemAssistService
+    overlay: OverlayService
 
 
 def build() -> Container:
@@ -162,6 +164,34 @@ def build() -> Container:
         on_assisted=lambda data: bus.publish("system.assisted", data),
     )
 
+    # 8. Floating Correction Overlay (HUD across all workspaces & monitors)
+    overlay_adapter = create_default_overlay_adapter()
+    def overlay_fix():
+        system_assist_service.assist_active_app(action="fix", in_place=True)
+
+    def overlay_rewrite():
+        system_assist_service.assist_active_app(action="rewrite", in_place=True)
+
+    def overlay_open():
+        dashboard_service.open()
+
+    overlay_service = OverlayService(
+        port=overlay_adapter,
+        on_action={
+            "fix": overlay_fix,
+            "rewrite": overlay_rewrite,
+            "open": overlay_open,
+        },
+    )
+
+    def on_assisted_event(data):
+        app = data.get("active_app", "Word")
+        cnt = data.get("issue_count", 0)
+        status = "fixed" if data.get("success") else "ready"
+        overlay_service.update_status(active_app=app, status=status, issues_count=cnt)
+
+    bus.subscribe("system.assisted", on_assisted_event)
+
     return Container(
         bus=bus,
         settings=settings_service,
@@ -171,4 +201,6 @@ def build() -> Container:
         server=dashboard_server,
         dashboard=dashboard_service,
         system_assist=system_assist_service,
+        overlay=overlay_service,
     )
+

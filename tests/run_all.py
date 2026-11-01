@@ -13,6 +13,7 @@ import test_settings
 import test_assistant
 import test_server
 import test_system_assist
+import test_overlay
 
 
 def main() -> int:
@@ -22,6 +23,7 @@ def main() -> int:
         ("Assistant Suite", lambda: (test_assistant.test_dictionary_filtering(), test_assistant.test_rewrite_and_reply(), 0)[2]),
         ("Server API Suite", lambda: (test_server.test_api_dispatcher(), 0)[1]),
         ("System Assist Suite", lambda: (test_system_assist.test_system_assist_in_place_fix(), test_system_assist.test_system_assist_word_excel(), 0)[2]),
+        ("Floating Overlay Suite", lambda: (test_overlay.test_overlay_state(), test_overlay.test_overlay_service_with_null_adapter(), test_overlay.test_default_adapter_creation(), 0)[3]),
     ]
 
     failed = False

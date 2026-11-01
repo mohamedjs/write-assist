@@ -59,6 +59,12 @@ def cmd_run(args) -> int:
 
     print(f"{__app_name__} v{__version__} daemon started at {c.server.url}")
 
+    # Start floating overlay if available and requested
+    use_overlay = getattr(args, "overlay", False) and not getattr(args, "no_overlay", False)
+    if use_overlay and c.overlay.is_available():
+        print("Starting floating correction overlay across all monitors and workspaces...")
+        c.overlay.start()
+
     # Open window unless explicitly told not to (e.g. autostart / systemd service)
     if not args.no_window:
         app_window_or_browser(c.server.url)
@@ -76,9 +82,32 @@ def cmd_run(args) -> int:
     try:
         stop_event.wait()
     finally:
+        if use_overlay and c.overlay.is_available():
+            c.overlay.stop()
         c.server.stop()
         print("WriteAssist stopped.")
 
+    return 0
+
+
+def cmd_overlay(args) -> int:
+    """Launch floating correction overlay HUD on top of all desktop apps."""
+    from .bootstrap import build
+
+    c = build()
+    if not c.overlay.is_available():
+        print("Floating overlay is not available on this desktop (requires GTK3 or PySide6).", file=sys.stderr)
+        return 1
+
+    print("WriteAssist Floating Correction Overlay running...")
+    print("Pinned across all monitors & virtual workspaces above Word, Excel, Notes, and Desktop apps.")
+    print("Press Ctrl+C to close.")
+    c.overlay.start()
+    try:
+        threading.Event().wait()
+    except KeyboardInterrupt:
+        c.overlay.stop()
+        print("\nOverlay closed.")
     return 0
 
 
@@ -187,7 +216,12 @@ def build_parser() -> argparse.ArgumentParser:
     # run
     p_run = subparsers.add_parser("run", help="Run background daemon service")
     p_run.add_argument("--no-window", action="store_true", help="Do not open desktop dashboard window")
+    p_run.add_argument("--overlay", action="store_true", help="Launch floating correction overlay HUD on top of all apps")
+    p_run.add_argument("--no-overlay", action="store_true", help="Do not launch floating overlay HUD")
     p_run.add_argument("--port", type=int, default=43817, help="Loopback port to bind (default: 43817)")
+
+    # overlay
+    subparsers.add_parser("overlay", help="Launch floating correction overlay HUD on top of all desktop apps")
 
     # dashboard
     p_dash = subparsers.add_parser("dashboard", help="Open the desktop dashboard window")
@@ -228,6 +262,8 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "run":
         return cmd_run(args)
+    if args.command == "overlay":
+        return cmd_overlay(args)
     if args.command == "dashboard":
         return cmd_dashboard(args)
     if args.command == "window":

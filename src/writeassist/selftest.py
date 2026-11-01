@@ -83,6 +83,16 @@ def run_checks(settings=None) -> list[CheckResult]:
     if not has_ai:
         results.append(CheckResult("AI Rewrite & Reply", "WARN", "No API key configured (grammar check still works without keys)"))
 
+    # 7. Floating Desktop Overlay (Always-on-top HUD)
+    from .modules.overlay import is_gtk_available, is_qt_available
+
+    if is_gtk_available():
+        results.append(CheckResult("Floating Desktop Overlay", "PASS", "GTK3 engine available (always-on-top across workspaces)"))
+    elif is_qt_available():
+        results.append(CheckResult("Floating Desktop Overlay", "PASS", "Qt/PySide6 engine available (always-on-top across workspaces)"))
+    else:
+        results.append(CheckResult("Floating Desktop Overlay", "WARN", "No GTK3 or Qt backend found (runs headless)"))
+
     return results
 
 
