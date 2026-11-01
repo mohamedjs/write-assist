@@ -9,6 +9,7 @@ const T = {
     "nav.screenshots": "Screenshots", "nav.download": "Download", "nav.features": "Features", "nav.extension": "Extension", "nav.faq": "FAQ",
     "gallery.title": "Real Screenshots of WriteAssist in Action",
     "gallery.sub": "Explore the real desktop workspace, AI rewrite engine, smart replies, and system diagnostics.",
+    "gallery.overlay": "Floating Correction HUD: Pinned above Word, Excel & Notes across all workspaces without stealing focus",
     "gallery.editor": "Writing Space: LanguageTool grammar detection with click-to-fix suggestions & Accept All",
     "gallery.rewrite": "AI Rewrite: Professional, Friendly, Formal, and Concise tone transformations via OpenRouter",
     "gallery.replies": "Smart Replies: 3 context-aware reply alternatives generated instantly with one-click copy",
@@ -54,6 +55,7 @@ const T = {
     "nav.screenshots": "لقطات شاشة", "nav.download": "التحميل", "nav.features": "المميزات", "nav.extension": "إضافة المتصفح", "nav.faq": "الأسئلة الشائعة",
     "gallery.title": "لقطات حقيقية من داخل تطبيق WriteAssist",
     "gallery.sub": "استكشف مساحة الكتابة المكتبية الحقيقية، محرك الصياغة الذكي، الردود المقترحة والفحص التشخيصي.",
+    "gallery.overlay": "البادج العائم: يطفو فوق Word و Excel و Notes عبر كافة الشاشات ومساحات العمل دون سرقة التركيز",
     "gallery.editor": "مساحة الكتابة: فحص قواعد دقيق عبر LanguageTool مع اقتراحات فورية وزر لقبول الكل",
     "gallery.rewrite": "إعادة الصياغة: تحويل النبرة إلى احترافية، ودية، رسمية، أو موجزة عبر OpenRouter",
     "gallery.replies": "اقتراح الردود: 3 بدائل ردود ذكية وسياقية مولدة فوراً مع زر نسخ سريع",
@@ -221,6 +223,7 @@ function applyLang() {
   }
 
   // Gallery screenshots switching
+  if ($("#shot-overlay")) $("#shot-overlay").src = `assets/shots/overlay-float-${lang}.png`;
   if ($("#shot-editor")) $("#shot-editor").src = `assets/shots/editor-${lang}.png`;
   if ($("#shot-rewrite")) $("#shot-rewrite").src = `assets/shots/rewrite-${lang}.png`;
   if ($("#shot-translate")) $("#shot-translate").src = `assets/shots/translate-${lang}.png`;
